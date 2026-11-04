@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart Calculator</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #f4f6f9;
+            color: #333;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            color: #34495e;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 8px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr auto;
+            gap: 10px;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        input {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 0.95rem;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        button {
+            padding: 10px 18px;
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #27ae60;
+        }
+
+        .search-box {
+            margin-bottom: 15px;
+        }
+
+        .search-box input {
+            width: 100%;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #e1e1e1;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            color: #555;
+            font-weight: 600;
+        }
+
+        .empty-msg {
+            text-align: center;
+            color: #888;
+            padding: 20px 0;
+        }
+
+        .receipt-details {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 1rem;
+        }
+
+        .receipt-row {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .receipt-row.total {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #2c3e50;
+            border-top: 2px dashed #bdc3c7;
+            padding-top: 10px;
+            margin-top: 5px;
+        }
+
+        .discount-text {
+            color: #e74c3c;
+        }
+
+        .badge {
+            background-color: #3498db;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        @media (max-width: 600px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Shopping Cart Calculator</h1>
+
+        <!-- Add Product Section -->
+        <div class="card">
+            <h2>Add New Product</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="pName">Product Name</label>
+                    <input type="text" id="pName" placeholder="e.g., Laptop">
+                </div>
+                <div class="form-group">
+                    <label for="pPrice">Price (AZN)</label>
+                    <input type="number" id="pPrice" min="0" step="0.01" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label for="pQuantity">Quantity</label>
+                    <input type="number" id="pQuantity" min="1" placeholder="1">
+                </div>
+                <button onclick="addProduct()">Add Product</button>
+            </div>
+        </div>
+
+        <!-- Cart View & Search Section -->
+        <div class="card">
+            <h2>Cart Items</h2>
+            <div class="search-box">
+                <input type="text" id="searchInput" oninput="searchProduct()" placeholder="🔍 Search product by name...">
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Product Name</th>
+                        <th>Unit Price</th>
+                        <th>Quantity</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody id="cartTableBody">
+                    <tr>
+                        <td colspan="4" class="empty-msg">No products added yet.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Receipt & Highlights Section -->
+        <div class="card">
+            <h2>Summary & Highlights</h2>
+            <div class="receipt-details">
+                <div class="receipt-row">
+                    <span>Subtotal:</span>
+                    <span><span id="subtotalVal">0.00</span> AZN</span>
+                </div>
+                <div class="receipt-row discount-text">
+                    <span>Discount:</span>
+                    <span>-<span id="discountVal">0.00</span> AZN (<span id="discountPercent">0</span>%)</span>
+                </div>
+                <div class="receipt-row total">
+                    <span>FINAL TOTAL:</span>
+                    <span><span id="totalVal">0.00</span> AZN</span>
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px;">
+                <span class="badge">
+                    Most Expensive Product: <span id="mostExpensiveVal">None</span>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let cart = [];
+
+        function addProduct() {
+            const nameInput = document.getElementById('pName').value.trim();
+            const priceInput = parseFloat(document.getElementById('pPrice').value);
+            const quantityInput = parseInt(document.getElementById('pQuantity').value);
+
+            if (!nameInput || isNaN(priceInput) || isNaN(quantityInput) || priceInput < 0 || quantityInput <= 0) {
+                alert("Please enter valid product details.");
+                return;
+            }
+
+            const product = {
+                name: nameInput,
+                price: priceInput,
+                quantity: quantityInput
+            };
+
+            cart.push(product);
+
+            document.getElementById('pName').value = '';
+            document.getElementById('pPrice').value = '';
+            document.getElementById('pQuantity').value = '';
+
+            renderCart();
+        }
+
+        function renderCart(filteredItems = null) {
+            const tbody = document.getElementById('cartTableBody');
+            const itemsToDisplay = filteredItems || cart;
+
+            if (itemsToDisplay.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="empty-msg">No products found.</td></tr>`;
+            } else {
+                tbody.innerHTML = '';
+                itemsToDisplay.forEach(item => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${item.name}</td>
+                        <td>${item.price.toFixed(2)} AZN</td>
+                        <td>${item.quantity}</td>
+                        <td>${(item.price * item.quantity).toFixed(2)} AZN</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+
+            calculateTotals();
+        }
+
+        function calculateTotals() {
+            let subtotal = 0;
+            let mostExpensiveItem = null;
+
+            cart.forEach(item => {
+                subtotal += item.price * item.quantity;
+
+                if (!mostExpensiveItem || item.price > mostExpensiveItem.price) {
+                    mostExpensiveItem = item;
+                }
+            });
+
+            let discountPercent = 0;
+            if (subtotal > 1000) {
+                discountPercent = 10;
+            } else if (subtotal > 500) {
+                discountPercent = 5;
+            }
+
+            const discountAmount = (subtotal * discountPercent) / 100;
+            const finalTotal = subtotal - discountAmount;
+
+            document.getElementById('subtotalVal').innerText = subtotal.toFixed(2);
+            document.getElementById('discountVal').innerText = discountAmount.toFixed(2);
+            document.getElementById('discountPercent').innerText = discountPercent;
+            document.getElementById('totalVal').innerText = finalTotal.toFixed(2);
+
+            document.getElementById('mostExpensiveVal').innerText = mostExpensiveItem
+                ? `${mostExpensiveItem.name} (${mostExpensiveItem.price.toFixed(2)} AZN)`
+                : 'None';
+        }
+
+        function searchProduct() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = cart.filter(item => item.name.toLowerCase().includes(query));
+            renderCart(filtered);
+        }
+    </script>
+</body>
+</html>
